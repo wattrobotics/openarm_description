@@ -41,6 +41,10 @@
 
   <xacro:arg name="bimanual" default="false" />
 
+  <xacro:arg name="include_left" default="true" />
+
+  <xacro:arg name="include_right" default="true" />
+
   <xacro:arg name="right_arm_base_xyz" default="0.0 -0.031 0.698" />
   <xacro:arg name="right_arm_base_rpy" default="1.5708 0 0" />
 
@@ -78,6 +82,8 @@
   arm_connected_to="base"
   body_connected_to="world"
   bimanual="$(arg bimanual)"
+  include_left="$(arg include_left)"
+  include_right="$(arg include_right)"
   right_arm_base_xyz="$(arg right_arm_base_xyz)"
   left_arm_base_xyz="$(arg left_arm_base_xyz)"
   right_arm_base_rpy="$(arg right_arm_base_rpy)"

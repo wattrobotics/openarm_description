@@ -24,10 +24,13 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
-def robot_state_publisher_spawner(context: LaunchContext, arm_type, ee_type, bimanual):
+def robot_state_publisher_spawner(context: LaunchContext, arm_type, ee_type, bimanual,
+                                  include_left, include_right):
     arm_type_str = context.perform_substitution(arm_type)
     ee_type_str = context.perform_substitution(ee_type)
     bimanual_str = context.perform_substitution(bimanual)
+    include_left_str = context.perform_substitution(include_left)
+    include_right_str = context.perform_substitution(include_right)
 
     xacro_path = os.path.join(
         get_package_share_directory("openarm_description"),
@@ -40,6 +43,8 @@ def robot_state_publisher_spawner(context: LaunchContext, arm_type, ee_type, bim
             "arm_type": arm_type_str,
             "ee_type": ee_type_str,
             "bimanual": bimanual_str,
+            "include_left": include_left_str,
+            "include_right": include_right_str,
         }
     ).toprettyxml(indent="  ")
 
@@ -92,13 +97,27 @@ def generate_launch_description():
         description="Whether to use bimanual configuration"
     )
 
+    include_left_arg = DeclareLaunchArgument(
+        "include_left",
+        default_value="true",
+        description="Include the left arm (only effective when bimanual:=true)"
+    )
+
+    include_right_arg = DeclareLaunchArgument(
+        "include_right",
+        default_value="true",
+        description="Include the right arm (only effective when bimanual:=true)"
+    )
+
     arm_type = LaunchConfiguration("arm_type")
     ee_type = LaunchConfiguration("ee_type")
     bimanual = LaunchConfiguration("bimanual")
+    include_left = LaunchConfiguration("include_left")
+    include_right = LaunchConfiguration("include_right")
 
     robot_state_publisher_loader = OpaqueFunction(
         function=robot_state_publisher_spawner,
-        args=[arm_type, ee_type, bimanual]
+        args=[arm_type, ee_type, bimanual, include_left, include_right]
     )
 
     rviz_loader = OpaqueFunction(
@@ -110,6 +129,8 @@ def generate_launch_description():
         arm_type_arg,
         ee_type_arg,
         bimanual_arg,
+        include_left_arg,
+        include_right_arg,
         robot_state_publisher_loader,
         Node(
             package="joint_state_publisher_gui",

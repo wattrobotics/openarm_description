@@ -28,6 +28,8 @@
             arm_connected_to='base'
             body_connected_to='world'
             bimanual:=false
+            include_left:=true
+            include_right:=true
             right_arm_base_xyz='0 0 0'
             left_arm_base_xyz='0 0 0'
             right_arm_base_rpy='0 0 0'
@@ -70,76 +72,110 @@
         kinematics_link="${body_kinematics_link}" />
 
         <!-- left arm -->
-        <xacro:openarm_arm
-        arm_type="${arm_type}"
-        arm_prefix="left_"
-        no_prefix="false"
-        description_pkg="openarm_description"
-        connected_to="openarm_body_link0"
-        xyz="${left_arm_base_xyz}"
-        rpy="${left_arm_base_rpy}"
-        joint_limits="${joint_limits}"
-        inertials="${inertials}"
-        kinematics="${kinematics}"
-        kinematics_link="${kinematics_link}"
-        kinematics_offset="${kinematics_offset}" />
+        <xacro:if value="${include_left}">
+            <xacro:openarm_arm
+            arm_type="${arm_type}"
+            arm_prefix="left_"
+            no_prefix="false"
+            description_pkg="openarm_description"
+            connected_to="openarm_body_link0"
+            xyz="${left_arm_base_xyz}"
+            rpy="${left_arm_base_rpy}"
+            joint_limits="${joint_limits}"
+            inertials="${inertials}"
+            kinematics="${kinematics}"
+            kinematics_link="${kinematics_link}"
+            kinematics_offset="${kinematics_offset}" />
+        </xacro:if>
 
         <!-- right arm -->
-        <xacro:openarm_arm
-        arm_type="${arm_type}"
-        arm_prefix="right_"
-        no_prefix="false"
-        description_pkg="openarm_description"
-        connected_to="openarm_body_link0"
-        xyz="${right_arm_base_xyz}"
-        rpy="${right_arm_base_rpy}"
-        joint_limits="${joint_limits}"
-        inertials="${inertials}"
-        kinematics="${kinematics}"
-        kinematics_link="${kinematics_link}"
-        kinematics_offset="${kinematics_offset}" />
-
-        <!-- ros2_control hardware interfaces for bimanual setup -->
-        <xacro:if value="${ros2_control}">
-            <xacro:openarm_bimanual_ros2_control
+        <xacro:if value="${include_right}">
+            <xacro:openarm_arm
             arm_type="${arm_type}"
-            control_gains="${control_gains}"
-            left_can_interface="${left_can_interface}"
-            right_can_interface="${right_can_interface}"
-            use_fake_hardware="${use_fake_hardware}"
-            fake_sensor_commands="${fake_sensor_commands}"
-            left_arm_prefix="${left_arm_prefix}"
-            right_arm_prefix="${right_arm_prefix}"
-            hand="${hand}"/>
+            arm_prefix="right_"
+            no_prefix="false"
+            description_pkg="openarm_description"
+            connected_to="openarm_body_link0"
+            xyz="${right_arm_base_xyz}"
+            rpy="${right_arm_base_rpy}"
+            joint_limits="${joint_limits}"
+            inertials="${inertials}"
+            kinematics="${kinematics}"
+            kinematics_link="${kinematics_link}"
+            kinematics_offset="${kinematics_offset}" />
+        </xacro:if>
+
+        <!-- ros2_control hardware interfaces -->
+        <xacro:if value="${ros2_control}">
+            <xacro:if value="${include_left and include_right}">
+                <xacro:openarm_bimanual_ros2_control
+                arm_type="${arm_type}"
+                control_gains="${control_gains}"
+                left_can_interface="${left_can_interface}"
+                right_can_interface="${right_can_interface}"
+                use_fake_hardware="${use_fake_hardware}"
+                fake_sensor_commands="${fake_sensor_commands}"
+                left_arm_prefix="${left_arm_prefix}"
+                right_arm_prefix="${right_arm_prefix}"
+                hand="${hand}"/>
+            </xacro:if>
+            <xacro:if value="${include_right and not include_left}">
+                <xacro:openarm_arm_ros2_control
+                arm_type="${arm_type}"
+                control_gains="${control_gains}"
+                arm_prefix="${right_arm_prefix}"
+                can_interface="${right_can_interface}"
+                use_fake_hardware="${use_fake_hardware}"
+                fake_sensor_commands="${fake_sensor_commands}"
+                hand="${hand}"
+                bimanual="false"
+                can_fd="${can_fd}"/>
+            </xacro:if>
+            <xacro:if value="${include_left and not include_right}">
+                <xacro:openarm_arm_ros2_control
+                arm_type="${arm_type}"
+                control_gains="${control_gains}"
+                arm_prefix="${left_arm_prefix}"
+                can_interface="${left_can_interface}"
+                use_fake_hardware="${use_fake_hardware}"
+                fake_sensor_commands="${fake_sensor_commands}"
+                hand="${hand}"
+                bimanual="false"
+                can_fd="${can_fd}"/>
+            </xacro:if>
         </xacro:if>
 
         <xacro:if value="$(eval hand and ee_type == 'openarm_hand')">
-            <xacro:openarm_hand
-                connected_to="openarm_left_link7"
-                arm_type="${arm_type}"
-                arm_prefix="left_"
-                ee_type="${ee_type}"
-                ee_kinematics_link="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/kinematics_link.yaml')}"
-                ee_inertials="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/inertials.yaml')}"
-                rpy_ee="$(arg rpy_ee)"
-                xyz_ee="$(arg xyz_ee)"
-                tcp_xyz="$(arg tcp_xyz)"
-                tcp_rpy="$(arg tcp_rpy)"
-                description_pkg="$(arg description_pkg)"
-            />
-            <xacro:openarm_hand
-                connected_to="openarm_right_link7"
-                arm_type="${arm_type}"
-                arm_prefix="right_"
-                ee_type="${ee_type}"
-                ee_kinematics_link="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/kinematics_link.yaml')}"
-                ee_inertials="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/inertials.yaml')}"
-                rpy_ee="$(arg rpy_ee)"
-                xyz_ee="$(arg xyz_ee)"
-                tcp_xyz="$(arg tcp_xyz)"
-                tcp_rpy="$(arg tcp_rpy)"
-                description_pkg="$(arg description_pkg)"
-            />
+            <xacro:if value="${include_left}">
+                <xacro:openarm_hand
+                    connected_to="openarm_left_link7"
+                    arm_type="${arm_type}"
+                    arm_prefix="left_"
+                    ee_type="${ee_type}"
+                    ee_kinematics_link="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/kinematics_link.yaml')}"
+                    ee_inertials="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/inertials.yaml')}"
+                    rpy_ee="$(arg rpy_ee)"
+                    xyz_ee="$(arg xyz_ee)"
+                    tcp_xyz="$(arg tcp_xyz)"
+                    tcp_rpy="$(arg tcp_rpy)"
+                    description_pkg="$(arg description_pkg)"
+                />
+            </xacro:if>
+            <xacro:if value="${include_right}">
+                <xacro:openarm_hand
+                    connected_to="openarm_right_link7"
+                    arm_type="${arm_type}"
+                    arm_prefix="right_"
+                    ee_type="${ee_type}"
+                    ee_kinematics_link="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/kinematics_link.yaml')}"
+                    ee_inertials="${xacro.load_yaml('$(find openarm_description)/config/hand/openarm_hand/inertials.yaml')}"
+                    rpy_ee="$(arg rpy_ee)"
+                    xyz_ee="$(arg xyz_ee)"
+                    tcp_xyz="$(arg tcp_xyz)"
+                    tcp_rpy="$(arg tcp_rpy)"
+                    description_pkg="$(arg description_pkg)"
+                />
+            </xacro:if>
           </xacro:if>
     </xacro:if>
 
