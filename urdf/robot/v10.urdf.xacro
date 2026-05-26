@@ -11,7 +11,7 @@
 
   <xacro:arg name="no_prefix" default="false"/>
 
-  <xacro:arg name="hand" default="true" />
+  <xacro:arg name="hand" default="false" />
 
   <xacro:if value="$(eval ee_type == 'none')">
     <xacro:property name="hand" value="false"/>

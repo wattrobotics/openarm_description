@@ -145,7 +145,7 @@
             </xacro:if>
         </xacro:if>
 
-        <xacro:if value="$(eval hand and ee_type == 'openarm_hand')">
+        <xacro:if value="${ee_type == 'openarm_hand'}">
             <xacro:if value="${include_left}">
                 <xacro:openarm_hand
                     connected_to="openarm_left_link7"
@@ -159,6 +159,7 @@
                     tcp_xyz="$(arg tcp_xyz)"
                     tcp_rpy="$(arg tcp_rpy)"
                     description_pkg="$(arg description_pkg)"
+                    hand="${hand}"
                 />
             </xacro:if>
             <xacro:if value="${include_right}">
@@ -174,6 +175,7 @@
                     tcp_xyz="$(arg tcp_xyz)"
                     tcp_rpy="$(arg tcp_rpy)"
                     description_pkg="$(arg description_pkg)"
+                    hand="${hand}"
                 />
             </xacro:if>
           </xacro:if>
@@ -208,13 +210,12 @@
             can_fd="${can_fd}"/>
         </xacro:if>
 
-        <xacro:if value="${hand and ee_type == 'openarm_hand'}">
+        <xacro:if value="${ee_type == 'openarm_hand'}">
 
         <xacro:property name="special_connection" value="$(arg special_connection)" />
         <!-- <xacro:property name="connection" value="${special_connection if special_connection != '' else arm_type + '_link7'}" /> -->
         <xacro:property name="connection" value="${special_connection if special_connection != '' else 'openarm' + '_link7'}" />
 
-        <xacro:if value="$(eval hand and ee_type == 'openarm_hand')">
         <xacro:openarm_hand
             connected_to="${arm_prefix_modified}${connection}"
             arm_type="${arm_type}"
@@ -226,8 +227,8 @@
             xyz_ee="$(arg xyz_ee)"
             tcp_xyz="$(arg tcp_xyz)"
             tcp_rpy="$(arg tcp_rpy)"
-            description_pkg="$(arg description_pkg)"/>
-        </xacro:if>
+            description_pkg="$(arg description_pkg)"
+            hand="${hand}"/>
         </xacro:if>
 
         </xacro:if>
